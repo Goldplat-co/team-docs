@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gleami 전략 캔버스 — 2026.04.02</title>
+<style>
+  :root {
+    --gold: #C8A951;
+    --gold-light: #F5E6B8;
+    --gold-dark: #8B7332;
+    --navy: #1B2D45;
+    --navy-light: #2E4A6E;
+    --white: #FAFAF7;
+    --gray: #6B7280;
+    --gray-light: #E5E7EB;
+    --red: #DC2626;
+    --red-light: #FEE2E2;
+    --green: #059669;
+    --green-light: #D1FAE5;
+    --blue: #2563EB;
+    --blue-light: #DBEAFE;
+    --orange: #D97706;
+    --orange-light: #FEF3C7;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--white);
+    color: var(--navy);
+    line-height: 1.6;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+    color: white;
+    padding: 40px;
+    text-align: center;
+  }
+  .header h1 { font-size: 2.2rem; font-weight: 800; margin-bottom: 8px; }
+  .header .subtitle { color: var(--gold-light); font-size: 1.1rem; }
+  .header .date { color: rgba(255,255,255,0.6); font-size: 0.9rem; margin-top: 8px; }
+
+  /* Container */
+  .container { max-width: 1400px; margin: 0 auto; padding: 40px 24px; }
+
+  /* Section */
+  .section { margin-bottom: 60px; }
+  .section-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--navy);
+    border-left: 5px solid var(--gold);
+    padding-left: 16px;
+    margin-bottom: 24px;
+  }
+  .section-desc {
+    color: var(--gray);
+    font-size: 0.95rem;
+    margin-bottom: 24px;
+    padding-left: 21px;
+  }
+
+  /* Lean Canvas Grid */
+  .canvas-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 0;
+    border: 3px solid var(--navy);
+    border-radius: 12px;
+    overflow: hidden;
+    background: white;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  }
+
+  .canvas-cell {
+    padding: 16px;
+    border: 1px solid var(--gray-light);
+    min-height: 180px;
+  }
+
+  .canvas-cell h3 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--gold-dark);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .canvas-cell h3 .num {
+    background: var(--gold);
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 700;
+  }
+
+  .canvas-cell ul { list-style: none; padding: 0; }
+  .canvas-cell li {
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+    padding-left: 14px;
+    position: relative;
+    line-height: 1.5;
+  }
+  .canvas-cell li::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: var(--gold);
+    font-weight: bold;
+  }
+
+  .canvas-cell .highlight {
+    background: var(--gold-light);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-top: 8px;
+  }
+
+  .canvas-cell .question {
+    background: var(--red-light);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    color: var(--red);
+    margin-top: 8px;
+  }
+
+  /* Canvas layout */
+  .c-problem { grid-column: 1; grid-row: 1 / 3; }
+  .c-solution { grid-column: 2; grid-row: 1; }
+  .c-uvp { grid-column: 3; grid-row: 1 / 3; background: rgba(200,169,81,0.05); }
+  .c-unfair { grid-column: 4; grid-row: 1; }
+  .c-customer { grid-column: 5; grid-row: 1; }
+  .c-metrics { grid-column: 2; grid-row: 2; }
+  .c-channels { grid-column: 4; grid-row: 2; }
+  .c-earlyad { grid-column: 5; grid-row: 2; }
+  .c-cost { grid-column: 1 / 3; grid-row: 3; }
+  .c-revenue { grid-column: 3 / 6; grid-row: 3; }
+
+  /* Assumptions */
+  .assumptions-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 24px;
+  }
+
+  .assumption-card {
+    padding: 20px;
+    border-radius: 12px;
+    border: 2px solid;
+  }
+
+  .assumption-card.critical {
+    border-color: var(--red);
+    background: var(--red-light);
+  }
+  .assumption-card.high {
+    border-color: var(--orange);
+    background: var(--orange-light);
+  }
+
+  .assumption-card .rank {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .assumption-card.critical .rank { color: var(--red); }
+  .assumption-card.high .rank { color: var(--orange); }
+
+  .assumption-card .text {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .assumption-card .verify {
+    font-size: 0.8rem;
+    color: var(--gray);
+  }
+
+  /* Strategy Cards */
+  .strategy-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+
+  .strategy-card {
+    background: white;
+    border-radius: 12px;
+    padding: 28px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    border: 1px solid var(--gray-light);
+  }
+
+  .strategy-card h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .strategy-card .tag {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+  .tag.phase1 { background: var(--green-light); color: var(--green); }
+  .tag.phase2 { background: var(--blue-light); color: var(--blue); }
+  .tag.phase3 { background: var(--orange-light); color: var(--orange); }
+
+  .strategy-card .desc {
+    color: var(--gray);
+    font-size: 0.9rem;
+    margin-bottom: 16px;
+  }
+
+  .strategy-card ul { list-style: none; padding: 0; }
+  .strategy-card li {
+    font-size: 0.88rem;
+    margin-bottom: 6px;
+    padding-left: 20px;
+    position: relative;
+  }
+  .strategy-card li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--gold);
+  }
+
+  /* Funnel */
+  .funnel-container {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin: 24px 0;
+  }
+
+  .funnel-stage {
+    flex: 1;
+    padding: 24px 20px;
+    text-align: center;
+    color: white;
+    position: relative;
+  }
+
+  .funnel-stage:first-child { border-radius: 12px 0 0 12px; }
+  .funnel-stage:last-child { border-radius: 0 12px 12px 0; }
+
+  .funnel-stage .stage-name {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    opacity: 0.8;
+    margin-bottom: 6px;
+  }
+  .funnel-stage .stage-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .funnel-stage .stage-desc {
+    font-size: 0.82rem;
+    opacity: 0.9;
+    line-height: 1.5;
+  }
+
+  .funnel-stage.f1 { background: var(--navy); }
+  .funnel-stage.f2 { background: var(--navy-light); }
+  .funnel-stage.f3 { background: var(--gold-dark); }
+  .funnel-stage.f4 { background: var(--gold); color: var(--navy); }
+
+  .funnel-arrow {
+    width: 0; height: 0;
+    border-top: 30px solid transparent;
+    border-bottom: 30px solid transparent;
+    align-self: center;
+    margin: 0 -1px;
+    z-index: 2;
+  }
+
+  /* Action Table */
+  .action-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+
+  .action-table th {
+    background: var(--navy);
+    color: white;
+    padding: 14px 16px;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-align: left;
+  }
+
+  .action-table td {
+    padding: 14px 16px;
+    font-size: 0.88rem;
+    border-bottom: 1px solid var(--gray-light);
+  }
+
+  .action-table tr:last-child td { border-bottom: none; }
+
+  .action-table .priority-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .priority-badge.p1 { background: var(--red-light); color: var(--red); }
+  .priority-badge.p2 { background: var(--orange-light); color: var(--orange); }
+  .priority-badge.p3 { background: var(--blue-light); color: var(--blue); }
+
+  /* Insight Box */
+  .insight-box {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+    color: white;
+    padding: 28px;
+    border-radius: 12px;
+    margin: 32px 0;
+  }
+  .insight-box .label {
+    color: var(--gold);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+  }
+  .insight-box .text {
+    font-size: 1.15rem;
+    font-weight: 600;
+    line-height: 1.6;
+  }
+  .insight-box .sub {
+    font-size: 0.9rem;
+    opacity: 0.7;
+    margin-top: 8px;
+  }
+
+  /* Comparison Table */
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+  .compare-table th {
+    background: var(--gold);
+    color: var(--navy);
+    padding: 12px 16px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-align: center;
+  }
+  .compare-table td {
+    padding: 12px 16px;
+    font-size: 0.85rem;
+    border-bottom: 1px solid var(--gray-light);
+    text-align: center;
+  }
+  .compare-table td:first-child { text-align: left; font-weight: 600; }
+
+  .win { color: var(--green); font-weight: 600; }
+  .lose { color: var(--red); font-weight: 600; }
+  .neutral { color: var(--gray); }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 40px;
+    color: var(--gray);
+    font-size: 0.8rem;
+    border-top: 1px solid var(--gray-light);
+    margin-top: 40px;
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .canvas-grid {
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto;
+    }
+    .c-problem { grid-column: 1; grid-row: 1; }
+    .c-customer { grid-column: 2; grid-row: 1; }
+    .c-uvp { grid-column: 1 / 3; grid-row: 2; }
+    .c-solution { grid-column: 1; grid-row: 3; }
+    .c-unfair { grid-column: 2; grid-row: 3; }
+    .c-metrics { grid-column: 1; grid-row: 4; }
+    .c-channels { grid-column: 2; grid-row: 4; }
+    .c-earlyad { grid-column: 1 / 3; grid-row: 5; }
+    .c-cost { grid-column: 1; grid-row: 6; }
+    .c-revenue { grid-column: 2; grid-row: 6; }
+
+    .strategy-grid { grid-template-columns: 1fr; }
+    .assumptions-grid { grid-template-columns: 1fr; }
+    .funnel-container { flex-direction: column; }
+    .funnel-stage:first-child { border-radius: 12px 12px 0 0; }
+    .funnel-stage:last-child { border-radius: 0 0 12px 12px; }
+  }
+
+  @media print {
+    .container { max-width: 100%; padding: 20px; }
+    .section { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <h1>Gleami 전략 캔버스</h1>
+  <div class="subtitle">종로 골드 주얼리 D2C — 린 캔버스 + 마케팅 & 프로덕트 전략</div>
+  <div class="date">2026.04.02 팀 미팅 자료 | GoldPlat CSO Session</div>
+</div>
+
+<div class="container">
+
+  <!-- ==================== PART 1: LEAN CANVAS ==================== -->
+  <div class="section">
+    <h2 class="section-title">1. Gleami 린 캔버스 v1.0</h2>
+    <p class="section-desc">우리 사업의 핵심 가정과 구조를 한 장에. ❓ 표시 = 검증 필요한 가정</p>
+
+    <div class="canvas-grid">
+
+      <!-- PROBLEM -->
+      <div class="canvas-cell c-problem">
+        <h3><span class="num">2</span> Problem</h3>
+        <ul>
+          <li><strong>P1. 선택의 한계</strong> — 금은방은 그 가게 것만 볼 수 있음. 종로 2,000개 업체인데 2~3곳만 방문 가능</li>
+          <li><strong>P2. 가격 불투명</strong> — "이 가격이 적정한가?" 확인 방법 없음. 금시세 대비 공임이 얼마인지 모름</li>
+          <li><strong>P3. 온라인 부재</strong> — 골드 주얼리 전문 온라인 채널 자체가 존재하지 않음. 실버/패션과 뒤죽박죽</li>
+        </ul>
+        <div style="margin-top: 16px; padding-top: 12px; border-top: 1px dashed #ddd;">
+          <div style="font-size: 0.75rem; color: var(--gray); font-weight: 600; margin-bottom: 6px;">기존 대안</div>
+          <ul>
+            <li>금은방 (오프라인, 비교불가)</li>
+            <li>홈쇼핑 (시간제한, 선택제한)</li>
+            <li>네이버쇼핑 (뒤죽박죽, 신뢰↓)</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- SOLUTION -->
+      <div class="canvas-cell c-solution">
+        <h3><span class="num">4</span> Solution</h3>
+        <ul>
+          <li><strong>S1. 큐레이션</strong> — 종로 여러 소싱처의 골드 주얼리를 한 곳에 모아 셀렉트 (60 → 2,000개)</li>
+          <li><strong>S2. 콘텐츠</strong> — 보세를 프리미엄으로 보여주는 고퀄 촬영·착용샷·상세페이지</li>
+          <li><strong>S3. 가격 경쟁력</strong> — 제조사 D2C 직거래, 중간마진 제거. 금은방보다 합리적 가격</li>
+        </ul>
+      </div>
+
+      <!-- UVP -->
+      <div class="canvas-cell c-uvp">
+        <h3><span class="num">3</span> Unique Value Proposition</h3>
+        <div class="highlight" style="margin-bottom: 16px;">
+          "종로의 이쁜 골드 주얼리를<br>제대로 보여주는 유일한 온라인 셀렉트샵"
+        </div>
+        <ul>
+          <li><strong>감도 있는 합리성</strong> = 콘텐츠 감성 + 거품 없는 가격</li>
+          <li>골드 주얼리 <strong>카테고리 킬러</strong> 포지셔닝</li>
+          <li>29cm의 감도 + 종로의 소싱력 + 거품 없는 가격</li>
+        </ul>
+        <div class="question">
+          ❓ 이 포지셔닝에 3040 환금성 고객이 실제로 반응하는가?<br>
+          → 런칭 후 광고 메시지 A/B 테스트로 검증
+        </div>
+      </div>
+
+      <!-- UNFAIR ADVANTAGE -->
+      <div class="canvas-cell c-unfair">
+        <h3><span class="num">9</span> Unfair Advantage</h3>
+        <ul>
+          <li><strong style="color: var(--gold-dark);">🔑 범준이사님</strong> — 종로 15년+ 왕도매. 거래처 확보 + 무료 렌탈 가능. 다른 스타트업이 복제 불가 (15년 관계)</li>
+          <li><strong>콘텐츠/촬영 역량</strong> — 보세를 프리미엄으로 보여주는 눈높이</li>
+          <li><strong>데이터 표준화</strong> — 장기 구축 중. 쌓일수록 경쟁 우위 확대</li>
+        </ul>
+      </div>
+
+      <!-- CUSTOMER -->
+      <div class="canvas-cell c-customer">
+        <h3><span class="num">1</span> Customer Segments</h3>
+        <ul>
+          <li><strong>3040 여성</strong> (일부 50대)</li>
+          <li>환금성 니즈 — 금 함량 있는 주얼리 선호</li>
+          <li>브랜드 거품 싫어함, <strong>가성비</strong> 선호</li>
+          <li><strong>본인 착용/간직</strong> 목적 (선물용 ❌)</li>
+          <li>구매력 있지만 온라인 주얼리 구매 습관은 약함</li>
+        </ul>
+        <div style="margin-top: 8px; font-size: 0.82rem; color: var(--gray);">
+          현재 구매처: 금은방, 홈쇼핑
+        </div>
+      </div>
+
+      <!-- KEY METRICS -->
+      <div class="canvas-cell c-metrics">
+        <h3><span class="num">8</span> Key Metrics</h3>
+        <ul>
+          <li>PDP 3개+ 탐색율 → <strong>30%+</strong></li>
+          <li>구매 전환율(CVR) → <strong>1%+</strong></li>
+          <li>30일 재방문율 → ❓ (PMF 핵심 신호)</li>
+          <li>Sean Ellis "없어지면 아쉬움" → <strong>40%+</strong></li>
+          <li>상품 수 → 60 → <strong>2,000개</strong> (연말)</li>
+        </ul>
+      </div>
+
+      <!-- CHANNELS -->
+      <div class="canvas-cell c-channels">
+        <h3><span class="num">5</span> Channels</h3>
+        <ul>
+          <li><strong>인스타그램</strong> — 비주얼 콘텐츠 최적</li>
+          <li><strong>네이버 검색/블로그</strong> — "골드 목걸이 추천" SEO</li>
+          <li><strong>카카오 광고</strong> — 3040 도달</li>
+          <li><strong>유튜브/숏폼</strong> — 착용 영상</li>
+          <li><strong>❓ 팝업/쇼룸</strong> — "직접 봐야 한다" 장벽 돌파용</li>
+        </ul>
+      </div>
+
+      <!-- EARLY ADOPTER -->
+      <div class="canvas-cell c-earlyad">
+        <h3>Early Adopter</h3>
+        <ul>
+          <li>3040 중 <strong>온라인 쇼핑에 열린</strong> 골드 주얼리 관심자</li>
+          <li>홈쇼핑 경험 있음 (원격 구매 거부감 없음)</li>
+          <li>인스타에서 주얼리 탐색하는 습관</li>
+        </ul>
+        <div class="question">
+          ❓ 구체적 프로필은 런칭 후 초기 구매자 분석으로 확인
+        </div>
+      </div>
+
+      <!-- COST -->
+      <div class="canvas-cell c-cost">
+        <h3><span class="num">7</span> Cost Structure</h3>
+        <ul>
+          <li><strong>[최대] 소싱/매입</strong> — 골드 원가 자체가 높음 (렌탈로 초기 부담 최소화)</li>
+          <li><strong>[고정] 콘텐츠</strong> — 포토그래퍼 인건비, 촬영 장비/스튜디오</li>
+          <li><strong>[변동] 마케팅</strong> — 초기 고객 획득에 집중 투자 필요</li>
+          <li><strong>[고정] 플랫폼</strong> — Cafe24 기반 운영비 (비교적 낮음)</li>
+          <li><strong>[변동] 배송/CS/반품</strong> — 고관여 상품이라 CS 비중 높을 수 있음</li>
+        </ul>
+      </div>
+
+      <!-- REVENUE -->
+      <div class="canvas-cell c-revenue">
+        <h3><span class="num">6</span> Revenue Streams</h3>
+        <ul>
+          <li><strong>판매 마진</strong> — 종로 도매 소싱가 + Gleami 마진 = 판매가. 제조사 D2C로 중간마진 제거</li>
+          <li><strong>가격 경쟁력</strong> — 금은방 대비 저렴하나, 가격 전쟁은 ❌. "합리적 가격"은 지원 요소</li>
+          <li><strong>금시세 변동</strong> — 소싱↔판매 시점차에 따른 차익/리스크 공존</li>
+        </ul>
+        <div style="margin-top: 12px; font-size: 0.82rem; color: var(--gray); font-style: italic;">
+          ※ 보세 D2C — 마진 구조 최적화가 사업 지속성의 핵심
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== ASSUMPTIONS ==================== -->
+  <div class="section">
+    <h2 class="section-title">2. 가장 위험한 가정 TOP 3</h2>
+    <p class="section-desc">린 캔버스에서 도출된 핵심 가정. 이걸 검증하는 것이 런칭의 목적.</p>
+
+    <div class="assumptions-grid">
+      <div class="assumption-card critical">
+        <div class="rank">🔴 #1 치명적</div>
+        <div class="text">"3040 환금성 고객이 온라인에서 보세 골드 주얼리를 산다"</div>
+        <div class="verify">검증: 런칭 후 실제 구매자 프로필 확인. 구매자 5명 전화 인터뷰.</div>
+      </div>
+      <div class="assumption-card high">
+        <div class="rank">🟠 #2 높음</div>
+        <div class="text">"골드 주얼리 전문 셀렉트샵 포지셔닝에 고객이 반응한다"</div>
+        <div class="verify">검증: 광고 메시지 A/B 테스트. CTR + 랜딩 체류시간 비교.</div>
+      </div>
+      <div class="assumption-card high">
+        <div class="rank">🟠 #3 높음</div>
+        <div class="text">"이 타겟(3040)을 디지털 채널로 획득할 수 있다"</div>
+        <div class="verify">검증: 채널별(인스타/네이버/카카오) CPA 비교. 퀸잇은 TV+카톡으로 4050을 잡았음.</div>
+      </div>
+    </div>
+
+    <div class="insight-box">
+      <div class="label">핵심 인사이트</div>
+      <div class="text">종로 플랫폼이 지금까지 없었던 이유는 수요가 없어서가 아니라, 공급을 풀 수 없어서다.</div>
+      <div class="sub">범준이사님(종로 15년+ 왕도매)이 있는 Gleami는 이 공급 장벽을 유일하게 넘은 팀. 나머지는 수요 검증의 문제.</div>
+    </div>
+  </div>
+
+  <!-- ==================== PART 2: COMPETITIVE POSITION ==================== -->
+  <div class="section">
+    <h2 class="section-title">3. 경쟁 포지션 — Gleami vs 기존 채널</h2>
+
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th style="text-align: left;">비교 항목</th>
+          <th>금은방</th>
+          <th>홈쇼핑</th>
+          <th>네이버쇼핑</th>
+          <th style="background: var(--navy); color: var(--gold);">Gleami</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>실물 확인</td>
+          <td class="win">✅ 직접 봄</td>
+          <td class="neutral">△ 영상만</td>
+          <td class="lose">❌</td>
+          <td class="neutral">△ 고퀄 콘텐츠</td>
+        </tr>
+        <tr>
+          <td>디자인 선택지</td>
+          <td class="lose">그 가게만</td>
+          <td class="lose">시간 내 2~3개</td>
+          <td class="neutral">많지만 섞임</td>
+          <td class="win">✅ 종로 전체 큐레이션</td>
+        </tr>
+        <tr>
+          <td>비교 가능성</td>
+          <td class="lose">❌ 발품</td>
+          <td class="lose">❌</td>
+          <td class="neutral">△ 뒤죽박죽</td>
+          <td class="win">✅ 한 화면에서</td>
+        </tr>
+        <tr>
+          <td>가격 합리성</td>
+          <td class="lose">불투명</td>
+          <td class="neutral">할인은 있지만</td>
+          <td class="neutral">비교 가능</td>
+          <td class="win">✅ 중간마진 제거</td>
+        </tr>
+        <tr>
+          <td>골드 전문성</td>
+          <td class="win">✅ 전문</td>
+          <td class="neutral">일부</td>
+          <td class="lose">❌ 섞임</td>
+          <td class="win">✅ 골드만 전문</td>
+        </tr>
+        <tr>
+          <td>편의성</td>
+          <td class="lose">직접 방문</td>
+          <td class="neutral">시간 제약</td>
+          <td class="win">✅</td>
+          <td class="win">✅ 24시간</td>
+        </tr>
+        <tr>
+          <td>신뢰</td>
+          <td class="win">✅ 단골 관계</td>
+          <td class="win">✅ 방송사 보증</td>
+          <td class="lose">낮음</td>
+          <td class="lose">❌ 신생 (구축 필요)</td>
+        </tr>
+        <tr>
+          <td>콘텐츠 품질</td>
+          <td class="lose">진열장</td>
+          <td class="neutral">영상</td>
+          <td class="lose">판매자 사진</td>
+          <td class="win">✅ 고퀄 촬영/스타일링</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="text-align: center; color: var(--gray); font-size: 0.85rem; margin-top: 12px;">
+      <strong style="color: var(--green);">✅ 우위</strong> &nbsp;|&nbsp;
+      <span style="color: var(--gray);">△ 보통</span> &nbsp;|&nbsp;
+      <strong style="color: var(--red);">❌ 열위</strong> &nbsp;&nbsp;→&nbsp;&nbsp;
+      <strong>Gleami의 유일한 약점 = "신뢰"</strong>. 이걸 넘기는 것이 마케팅/프로덕트의 핵심 과제.
+    </div>
+  </div>
+
+  <!-- ==================== PART 3: USER JOURNEY & MARKETING ==================== -->
+  <div class="section">
+    <h2 class="section-title">4. 마케팅 전략 — 유저 여정별 설계</h2>
+    <p class="section-desc">1단계에서 욕망을 점화하고, 2단계에서 불안을 해소하는 2단 구조</p>
+
+    <div class="funnel-container">
+      <div class="funnel-stage f1">
+        <div class="stage-name">Stage 1</div>
+        <div class="stage-title">발견 — "어? 이쁘다"</div>
+        <div class="stage-desc">
+          비주얼 후킹으로 감정 점화<br>
+          "갖고 싶다" "나한테 어울리겠다"<br><br>
+          <strong>채널:</strong> 인스타, 숏폼, 네이버<br>
+          <strong>콘텐츠:</strong> 착용샷, 스타일링, 무드
+        </div>
+      </div>
+      <div class="funnel-stage f2">
+        <div class="stage-name">Stage 2</div>
+        <div class="stage-title">탐색 — "여기 뭐지?"</div>
+        <div class="stage-desc">
+          사이트 진입 후 둘러봄<br>
+          "다른 것도 이쁘네" "가격이?"<br><br>
+          <strong>핵심:</strong> 상품 다양성, 카테고리<br>
+          <strong>목표:</strong> 3개+ 상품 탐색 유도
+        </div>
+      </div>
+      <div class="funnel-stage f3">
+        <div class="stage-name">Stage 3</div>
+        <div class="stage-title">검토 — "사도 되나?"</div>
+        <div class="stage-desc">
+          불안 해소 + 확신 부여<br>
+          "종로 직소싱이라" "진짜 금이고"<br><br>
+          <strong>핵심:</strong> 신뢰 시그널<br>
+          <strong>도구:</strong> 후기, 스펙, 보증, 반품정책
+        </div>
+      </div>
+      <div class="funnel-stage f4">
+        <div class="stage-name">Stage 4</div>
+        <div class="stage-title">구매 — "질렀다!"</div>
+        <div class="stage-desc">
+          결제 마찰 최소화<br>
+          간편결제, 할부, 무료배송<br><br>
+          <strong>후속:</strong> 언박싱 경험<br>
+          <strong>목표:</strong> 재방문 유도
+        </div>
+      </div>
+    </div>
+
+    <!-- Marketing Strategy Cards -->
+    <div class="strategy-grid" style="margin-top: 32px;">
+
+      <div class="strategy-card">
+        <h3>🎯 감정 트리거 테스트 <span class="tag phase1">Phase 1 — 런칭 전/직후</span></h3>
+        <div class="desc">같은 제품 사진, 메시지만 다르게 → 어떤 감정이 먹히는지 확인</div>
+        <ul>
+          <li><strong>T1. 착용 욕구</strong> — 모델컷 중심. "이게 나한테 올라간 모습" 상상 유도</li>
+          <li><strong>T3. 발견의 쾌감</strong> — "종로에서 건져온 디자인" "아직 아무도 모르는"</li>
+          <li><strong>T4. 가격 놀라움</strong> — "이 퀄리티에 이 가격?" 비주얼+가격 태그만</li>
+          <li>메타(인스타) 광고 3종, 5~10만원 예산, 3~5일 → CTR로 승자 판별</li>
+        </ul>
+      </div>
+
+      <div class="strategy-card">
+        <h3>📱 채널 전략 <span class="tag phase1">Phase 1</span></h3>
+        <div class="desc">3040이 실제로 있는 곳에서 잡아야 한다</div>
+        <ul>
+          <li><strong>인스타그램</strong> — 비주얼 콘텐츠 메인. 릴스/피드 동시 운영</li>
+          <li><strong>네이버 블로그/SEO</strong> — "14K 목걸이 추천" "골드 반지 인기" 등 검색 타겟</li>
+          <li><strong>카카오 모먼트</strong> — 3040 여성 타겟 정밀 광고</li>
+          <li>초기 예산 배분: 인스타 50% / 네이버 30% / 카카오 20% → 데이터 보고 조정</li>
+        </ul>
+      </div>
+
+      <div class="strategy-card">
+        <h3>📸 콘텐츠 전략 <span class="tag phase1">Phase 1</span></h3>
+        <div class="desc">Gleami의 핵심 무기. 보세를 보세답지 않게 보여주는 것</div>
+        <ul>
+          <li><strong>제품 촬영</strong> — 착용샷(필수), 디테일컷, 360도, 사이즈 비교</li>
+          <li><strong>스타일링 콘텐츠</strong> — "이 목걸이 + 이 코디" 조합 제안</li>
+          <li><strong>숏폼 영상</strong> — 착용 순간, 빛 반사, 언박싱. 15~30초</li>
+          <li>촬영 프로세스: 렌탈 → 촬영(1~2일) → 반납 → 편집 → 업로드</li>
+        </ul>
+      </div>
+
+      <div class="strategy-card">
+        <h3>🤝 신뢰 구축 전략 <span class="tag phase2">Phase 2 — 런칭 후 1~2개월</span></h3>
+        <div class="desc">경쟁 비교에서 유일한 약점 = "신뢰". 이걸 빠르게 쌓아야 함</div>
+        <ul>
+          <li><strong>"종로 직소싱" 스토리</strong> — 종로 촬영 현장, 소싱 과정을 콘텐츠로</li>
+          <li><strong>100% 교환/반품 보장</strong> — "마음에 안 들면 무조건 반품" 선언</li>
+          <li><strong>실구매자 후기</strong> — 구매 인증샷 + 착용 후기 적극 수집</li>
+          <li><strong>금 함량 인증</strong> — 제품별 함량/중량 표기. Phase 2에서 인증서 도입 검토</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== PART 4: PRODUCT ==================== -->
+  <div class="section">
+    <h2 class="section-title">5. 프로덕트 강화 로드맵</h2>
+    <p class="section-desc">현재 자원과 우선순위 기반. 한 번에 다 안 됨 — 단계별로.</p>
+
+    <table class="action-table">
+      <thead>
+        <tr>
+          <th>우선순위</th>
+          <th>항목</th>
+          <th>구체적 액션</th>
+          <th>시기</th>
+          <th>목적</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="priority-badge p1">P1</span></td>
+          <td><strong>상품 수 확장</strong></td>
+          <td>60 → 200개 (4월). 렌탈→촬영→업로드 파이프라인 속도 최적화. 포토그래퍼 합류 후 주 20~30개 신규 등록</td>
+          <td>4~6월</td>
+          <td>"셀렉트샵" 느낌이 나려면 최소 200개+</td>
+        </tr>
+        <tr>
+          <td><span class="priority-badge p1">P1</span></td>
+          <td><strong>PDP (상세페이지) 퀄리티</strong></td>
+          <td>착용샷 필수, 디테일컷 3장+, 사이즈 가이드, 소재/함량 기본 표기. 감성 카피 + 스펙 하단 배치</td>
+          <td>런칭 전</td>
+          <td>1단계(욕망) + 3단계(확신) 동시 충족</td>
+        </tr>
+        <tr>
+          <td><span class="priority-badge p1">P1</span></td>
+          <td><strong>카테고리 구조</strong></td>
+          <td>골드 주얼리 전문 카테고리 체계: 소재별(14K/18K/24K) × 유형별(목걸이/반지/귀걸이/팔찌) × 스타일별</td>
+          <td>런칭 전</td>
+          <td>"골드 전문" 느낌을 사이트 구조로 체감</td>
+        </tr>
+        <tr>
+          <td><span class="priority-badge p2">P2</span></td>
+          <td><strong>가격 전략 고도화</strong></td>
+          <td>균일가 → 제품별 가격 전환. "금 시세 기반 가격" 표시 여부 A/B 테스트. 금은방 대비 가격 우위를 간접 표현</td>
+          <td>5~6월</td>
+          <td>환금성 고객의 가격 납득 지원</td>
+        </tr>
+        <tr>
+          <td><span class="priority-badge p2">P2</span></td>
+          <td><strong>신뢰 시그널</strong></td>
+          <td>교환/반품 정책 눈에 띄게 배치, "종로 직소싱" 배지, 함량/중량 표기 표준화</td>
+          <td>5월~</td>
+          <td>온라인 구매 불안 해소</td>
+        </tr>
+        <tr>
+          <td><span class="priority-badge p2">P2</span></td>
+          <td><strong>Mixpanel 이벤트 세팅</strong></td>
+          <td>PDP 조회, 장바구니, 결제, 이탈 포인트 전체 퍼널 추적. 어디서 빠지는지 데이터로 확인</td>
+          <td>런칭 전</td>
+          <td>데이터 기반 개선 루프</td>
+        </tr>
+        <tr>
+          <td><span class="priority-badge p3">P3</span></td>
+          <td><strong>금시세 연동</strong></td>
+          <td>실시간 금시세 표시 + "이 제품의 금 가치: X원" 표기. 환금성 고객에게 핵심 정보</td>
+          <td>7월~</td>
+          <td>장기 차별점. 데이터 표준화 첫 단추</td>
+        </tr>
+        <tr>
+          <td><span class="priority-badge p3">P3</span></td>
+          <td><strong>리뷰/UGC 시스템</strong></td>
+          <td>구매 인증 리뷰 시스템. 착용 사진 필수. 리뷰 작성 시 포인트/할인 인센티브</td>
+          <td>6월~</td>
+          <td>사회적 증거(Social Proof) 축적</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ==================== PART 5: PMF VALIDATION ==================== -->
+  <div class="section">
+    <h2 class="section-title">6. PMF 검증 계획 — 런칭 후 4주</h2>
+
+    <div class="strategy-grid">
+      <div class="strategy-card">
+        <h3>📊 정량 지표 (데이터로 확인)</h3>
+        <div class="desc">Mixpanel 퍼널 기반</div>
+        <ul>
+          <li><strong>Week 1~2:</strong> 광고 CTR + 랜딩 체류시간 → 어떤 메시지가 먹히나</li>
+          <li><strong>Week 2~3:</strong> PDP 탐색율, 장바구니 담기율, CVR → 콘텐츠가 구매로 이어지나</li>
+          <li><strong>Week 3~4:</strong> 재방문율, 재구매 → PMF 초기 신호</li>
+          <li>지인 구매 vs 비지인 구매 반드시 구분 (지인 효과 제거)</li>
+        </ul>
+      </div>
+
+      <div class="strategy-card">
+        <h3>📞 정성 검증 (직접 물어보기)</h3>
+        <div class="desc">구매자 5명 전화 인터뷰 — 이게 가장 중요</div>
+        <ul>
+          <li><strong>Q1.</strong> "처음에 뭐 보고 들어오셨어요?" → 트리거 확인</li>
+          <li><strong>Q2.</strong> "장바구니 담고 바로 결제? 고민?" → 불안 수준 확인</li>
+          <li><strong>Q3.</strong> "뭐 때문에 결국 사셨어요?" → <strong>핵심 구매 이유 = One Thing의 실마리</strong></li>
+          <li><strong>Q4.</strong> "Gleami 없어지면 좀 아쉬울 것 같으세요?" → Sean Ellis 간이 테스트</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="insight-box" style="margin-top: 24px;">
+      <div class="label">오늘의 결론</div>
+      <div class="text">
+        Gleami의 "One Thing"은 머리에서 나오는 게 아니라, 고객 입에서 나온다.<br>
+        런칭 후 Q3("뭐 때문에 결국 사셨어요?")의 답에서 One Thing의 실마리를 찾자.
+      </div>
+      <div class="sub">
+        무신사의 랭킹도, 퀸잇의 4050 브랜드도 사전 설계가 아닌 고객 반응에서 발견된 것.<br>
+        지금 할 수 있는 최선 = 가설을 빠르게 시장에 던지고, 고객이 뭐라 하는지 듣는 것.
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== PART 6: IMMEDIATE ACTIONS ==================== -->
+  <div class="section">
+    <h2 class="section-title">7. 이번 주 액션 아이템</h2>
+
+    <table class="action-table">
+      <thead>
+        <tr>
+          <th>담당</th>
+          <th>액션</th>
+          <th>기한</th>
+          <th>산출물</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>진영</strong></td>
+          <td>린 캔버스 팀 리뷰 및 UVP 방향 합의</td>
+          <td>오늘 (4/2)</td>
+          <td>UVP 초안 확정</td>
+        </tr>
+        <tr>
+          <td><strong>진영 + 다은</strong></td>
+          <td>감정 트리거 3종 광고 크리에이티브 초안 기획 (T1/T3/T4)</td>
+          <td>4/4 (금)</td>
+          <td>크리에이티브 시안 3종</td>
+        </tr>
+        <tr>
+          <td><strong>다은</strong></td>
+          <td>채널별 3040 타겟팅 셋업 (인스타/네이버/카카오)</td>
+          <td>4/7 (월)</td>
+          <td>광고 세팅 완료</td>
+        </tr>
+        <tr>
+          <td><strong>진영</strong></td>
+          <td>PDP 퀄리티 기준 정의 (착용샷/디테일컷/스펙 표기 범위)</td>
+          <td>4/4 (금)</td>
+          <td>PDP 템플릿</td>
+        </tr>
+        <tr>
+          <td><strong>범준이사님</strong></td>
+          <td>다음 렌탈 배치 확보 (목표: +50개 이상)</td>
+          <td>4월 중</td>
+          <td>200개 달성 로드맵</td>
+        </tr>
+        <tr>
+          <td><strong>진영</strong></td>
+          <td>Mixpanel 핵심 퍼널 이벤트 설계</td>
+          <td>4/7 (월)</td>
+          <td>이벤트 택소노미</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <p>Gleami 전략 캔버스 v1.0 — 2026.04.02 | GoldPlat CSO Session</p>
+  <p>이 문서는 가설 기반입니다. 런칭 후 데이터로 지속 업데이트 필요.</p>
+</div>
+
+</body>
+</html>
